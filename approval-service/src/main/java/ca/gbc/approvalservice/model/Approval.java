@@ -7,13 +7,16 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(value = "approval")
+@Document(collection = "approvals")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Approval {
     @Id
-    private String approvalId;
-    private String approval;
+    private String id;
+    private String eventId;
+    private String userId;
+    private boolean approved;
+    private String comments; // Optional comments from staff
 }

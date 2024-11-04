@@ -7,15 +7,16 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(value = "events")
+@Document(collection = "events")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Events {
     @Id
-    private String organizerId;
+    private String id;
     private String eventName;
+    private String organizerId;
     private String eventType;
     private int expectedAttendees;
 }

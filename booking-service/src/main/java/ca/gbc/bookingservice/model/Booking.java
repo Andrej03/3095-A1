@@ -7,18 +7,19 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
-@Document(value = "booking")
+@Document(value = "bookings")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Booking {
     @Id
+    private String id;
     private String userId;
     private String roomId;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String purpose;
 }
