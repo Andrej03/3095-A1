@@ -2,14 +2,15 @@ package ca.gbc.approvalservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(value = "approval")
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Approval {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
