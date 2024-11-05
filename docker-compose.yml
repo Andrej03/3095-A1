@@ -2,11 +2,47 @@ version: '4.0'
 
 services:
 
+# POSTGRES SQL COMPOSE FILE / SQL
+  postgres-room-service:
+    image: postgres
+    ports:
+      - "5442:5432"
+    container_name: postgres-room-service
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./data/room-service:/var/lib/postgresql/data
+      - ./init/room-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-user-service:
+    image: postgres
+    ports:
+      - "5443:5432"
+    container_name: postgres-user-service
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./data/user-service:/var/lib/postgresql/data
+      - ./init/user-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8888:80"
+    container_name: pgadmin-single
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=a1@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=password
+
+# MONGO DB COMPOSE FILES / NOSQL
+
   # Booking Service
   booking-service:
     image: booking-service
     ports:
-      - "8086:8086"
+      - "8085:8085"
     build:
       context: ./booking-service
       dockerfile: ./Dockerfile
@@ -22,7 +58,7 @@ services:
   event-service:
     image: event-service
     ports:
-      - "8088:8088"
+      - "8086:8086"
     build:
       context: ./event-service
       dockerfile: ./Dockerfile
@@ -38,7 +74,7 @@ services:
   approval-service:
     image: approval-service
     ports:
-      - "8089:8089"
+      - "8087:8087"
     build:
       context: ./approval-service
       dockerfile: ./Dockerfile
@@ -53,7 +89,7 @@ services:
   # MongoDB Service
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: mongodb-a1
     ports:
       - "27019:27017"
     environment:
@@ -65,11 +101,11 @@ services:
     networks:
         - spring
 
-  # Mongo Express for MongoDB GUI
+  # Mongo Express
   mongo-express:
-    image: mongo-express
+    image: mongo-express-a1
     ports:
-      - "8083:8082"
+      - "8083:8081"
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=password
