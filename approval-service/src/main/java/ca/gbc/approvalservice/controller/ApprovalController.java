@@ -33,7 +33,8 @@ public class ApprovalController {
     @GetMapping("/{approvalId}")
     public ResponseEntity<ApprovalResponse> getApprovalById(@PathVariable("approvalId") String approvalId) {
         ApprovalResponse approvalResponse = approvalService.getApprovalById(approvalId);
-        return approvalResponse != null ? new ResponseEntity<>(approvalResponse, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return approvalResponse != null ? new ResponseEntity<>(approvalResponse, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{approvalId}")

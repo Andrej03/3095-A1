@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -76,5 +77,11 @@ public class RoomsServiceImp implements RoomsService {
                 room.getFeatures(),
                 room.isAvailable()
         );
+    }
+
+    @Override
+    public boolean isRoomAvailable(String roomId, LocalDateTime startTime, LocalDateTime endTime) {
+        // Your logic to check availability goes here
+        return true; // Replace this with actual implementation
     }
 }

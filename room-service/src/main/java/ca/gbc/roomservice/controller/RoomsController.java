@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -54,5 +55,13 @@ public class RoomsController {
     public ResponseEntity<?> deleteRoom(@PathVariable("roomId") int roomId) {
         roomsService.deleteRoomStatus(roomId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/{roomId}/availability")
+    public ResponseEntity<Boolean> checkRoomAvailability(@PathVariable String roomId,
+                                                         @RequestParam String startTime,
+                                                         @RequestParam String endTime) {
+        boolean isAvailable = roomsService.isRoomAvailable(roomId, LocalDateTime.parse(startTime), LocalDateTime.parse(endTime));
+        return ResponseEntity.ok(isAvailable);
     }
 }

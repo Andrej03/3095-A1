@@ -1,22 +1,21 @@
 package ca.gbc.approvalservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Document(collection = "approvals")
+@Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Approval {
+
     @Id
-    private String id;
-    private String eventId;
-    private String userId;
-    private boolean approved;
-    private String comments; // Optional comments from staff
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String eventId; // ID of the event being approved
+    private String userId; // ID of the user who requested approval
+    private boolean approved; // Approval status
+    private String comments; // Comments or notes related to the approval
 }

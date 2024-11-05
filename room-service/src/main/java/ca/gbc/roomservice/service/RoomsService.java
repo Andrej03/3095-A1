@@ -3,6 +3,7 @@ package ca.gbc.roomservice.service;
 import ca.gbc.roomservice.dto.RoomRequest;
 import ca.gbc.roomservice.dto.RoomResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomsService {
@@ -10,4 +11,5 @@ public interface RoomsService {
     List<RoomResponse> getAllRooms();
     int updateRoomStatus(int roomId, RoomRequest roomRequest);
     void deleteRoomStatus(int roomId);
+    boolean isRoomAvailable(String roomId, LocalDateTime parse, LocalDateTime parse1);
 }

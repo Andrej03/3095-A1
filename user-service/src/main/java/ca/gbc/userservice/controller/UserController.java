@@ -41,4 +41,10 @@ public class UserController {
         userService.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/api/users/{userId}/role")
+    public ResponseEntity<String> getUserRole(@PathVariable String userId) {
+        String role = userService.getUserRole(userId); // Implement this method in UserService
+        return role != null ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
+    }
 }

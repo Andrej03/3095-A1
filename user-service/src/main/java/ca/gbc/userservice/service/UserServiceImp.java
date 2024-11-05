@@ -43,15 +43,18 @@ public class UserServiceImp implements UserService {
     @Override
     public UserResponse getUserById(Long userId) {
         Users user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getUserType());
-        }
-        return null;
+        return user != null ? new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getUserType()) : null;
     }
 
     @Override
     public void deleteUser(Long userId) {
         log.debug("Deleting user with id {}", userId);
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public String getUserRole(String userId) {
+        Users user = userRepository.findById(Long.valueOf(userId)).orElse(null);
+        return user != null ? user.getRole().name() : null; // Ensure you're returning a String representation
     }
 }
