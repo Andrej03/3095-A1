@@ -1,125 +1,90 @@
-#version: '4.0'
-#
-#services:
-#
-#  room-service:
-#    image: room-service
-#    ports:
-#      - "8085:8085"
-#    build:
-#      context: ./room-service      # The directory where the RoomService Dockerfile resides
-#      dockerfile: Dockerfile       # Specify the Dockerfile for use to build image
-#    container_name: room-service
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      POSTGRES_DB: your_db_name
-#      POSTGRES_USER: your_username
-#      POSTGRES_PASSWORD: your_password
-#    depends_on:
-#      - postgres
-#    networks:
-#      - spring
-#
-#  booking-service:
-#    image: booking-service
-#    ports:
-#      - "8086:8086"
-#    build:
-#      context: ./booking-service
-#      dockerfile: Dockerfile
-#    container_name: booking-service
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      MONGO_DB_USERNAME: admin
-#      MONGO_DB_PWD: password
-#      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/bookingdb
-#    depends_on:
-#      - mongodb
-#    networks:
-#      - spring
-#
-#  user-service:
-#    image: user-service
-#    ports:
-#      - "8087:8087"
-#    build:
-#      context: ./user-service
-#      dockerfile: Dockerfile
-#    container_name: user-service
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      POSTGRES_DB: your_db_name
-#      POSTGRES_USER: your_username
-#      POSTGRES_PASSWORD: your_password
-#    depends_on:
-#      - postgres
-#    networks:
-#      - spring
-#
-#  event-service:
-#    image: event-service
-#    ports:
-#      - "8088:8088"
-#    build:
-#      context: ./event-service
-#      dockerfile: Dockerfile
-#    container_name: event-service
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      MONGO_DB_USERNAME: admin
-#      MONGO_DB_PWD: password
-#      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/eventdb
-#    depends_on:
-#      - mongodb
-#    networks:
-#      - spring
-#
-#  approval-service:
-#    image: approval-service
-#    ports:
-#      - "8089:8089"
-#    build:
-#      context: ./approval-service
-#      dockerfile: Dockerfile
-#    container_name: approval-service
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      MONGO_DB_USERNAME: admin
-#      MONGO_DB_PWD: password
-#      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/approvaldb
-#    depends_on:
-#      - mongodb
-#    networks:
-#      - spring
-#
-#  mongodb:
-#    image: mongo:latest
-#    container_name: mongodb
-#    ports:
-#      - "27019:27017"  # Expose MongoDB on port 27017
-#    environment:
-#      - MONGO_INITDB_ROOT_USERNAME=admin
-#      - MONGO_INITDB_ROOT_PASSWORD=password
-#    volumes:
-#      - ./data/mongo:/data/db
-#    command: mongod --auth
-#    networks:
-#      - spring
-#
-#  postgres:
-#    image: postgres:latest
-#    container_name: postgres
-#    ports:
-#      - "5433:5432"  # Expose PostgreSQL on port 5432
-#    environment:
-#      POSTGRES_DB: your_db_name
-#      POSTGRES_USER: your_username
-#      POSTGRES_PASSWORD: your_password
-#    volumes:
-#      - ./data/postgres:/var/lib/postgresql/data
-#    networks:
-#      - spring
-#
-#networks:
-#  spring:
-#    driver: bridge
+version: '4.0'
+
+services:
+
+  # Booking Service
+  booking-service:
+    image: booking-service
+    ports:
+      - "8086:8086"
+    build:
+      context: ./booking-service
+      dockerfile: ./Dockerfile
+    container_name: booking-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+  # Event Service
+  event-service:
+    image: event-service
+    ports:
+      - "8088:8088"
+    build:
+      context: ./event-service
+      dockerfile: ./Dockerfile
+    container_name: event-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+  # Approval Service
+  approval-service:
+    image: approval-service
+    ports:
+      - "8089:8089"
+    build:
+      context: ./approval-service
+      dockerfile: ./Dockerfile
+    container_name: approval-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+        - ./data/mongo:/data/db
+        - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    networks:
+        - spring
+
+  # Mongo Express for MongoDB GUI
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8083:8082"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    container_name: mongo-express
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+# Optional volumes
+volumes:
+  mongo-db:
+    driver: local
+
+networks:
+  spring:
+    driver: bridge
