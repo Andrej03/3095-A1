@@ -4,85 +4,78 @@ import ca.gbc.roomservice.dto.RoomRequest;
 import ca.gbc.roomservice.dto.RoomResponse;
 import ca.gbc.roomservice.model.Rooms;
 import ca.gbc.roomservice.repository.RoomsRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
+@ResponseStatus
 public class RoomsServiceImp implements RoomsService {
 
     private final RoomsRepository roomsRepository;
 
+    @Autowired
+    public RoomsServiceImp(RoomsRepository roomsRepository) {
+        this.roomsRepository = roomsRepository;
+    }
+
     @Override
     public RoomResponse createRoomStatus(RoomRequest roomRequest) {
-        log.debug("Creating a new room {}", roomRequest.roomName());
-
-        Rooms room = Rooms.builder()
-                .roomName(roomRequest.roomName())
-                .capacity(roomRequest.capacity())
-                .features(roomRequest.features())
-                .available(roomRequest.available())
-                .build();
+        Rooms room = new Rooms();
+        room.setRoomName(roomRequest.roomName());
+        room.setCapacity(roomRequest.capacity());
+        room.setFeatures(roomRequest.features());
+        room.setAvailable(true);  // assuming a new room is available by default
 
         roomsRepository.save(room);
-        log.info("New room {} is saved", room.getId());
 
-        return mapToRoomResponse(room);
+        return new RoomResponse(room.getId(), room.getRoomName(), room.getCapacity(), room.getFeatures(), room.isAvailable());
     }
 
     @Override
     public List<RoomResponse> getAllRooms() {
-        log.debug("Getting all rooms");
         List<Rooms> rooms = roomsRepository.findAll();
-        return rooms.stream().map(this::mapToRoomResponse).toList();
+        return rooms.stream()
+                .map(room -> new RoomResponse(room.getId(), room.getRoomName(), room.getCapacity(), room.getFeatures(), room.isAvailable()))
+                .toList();
     }
 
     @Override
-    public Long updateRoomStatus(Long roomId, RoomRequest roomRequest) {  // Change return type to Long
-        log.debug("Updating room with id {}", roomId);
-
-        Rooms room = roomsRepository.findById(roomId).orElseThrow(() -> {
-            log.error("Room with id {} not found", roomId);
-            return new RuntimeException("Room not found");
-        });
-
-        room.setRoomName(roomRequest.roomName());
-        room.setCapacity(roomRequest.capacity());
-        room.setFeatures(roomRequest.features());
-        room.setAvailable(roomRequest.available());
-
-        roomsRepository.save(room);
-        log.info("Room {} updated successfully", room.getId());
-
-        return room.getId();  // Return Long ID
+    public Long updateRoomStatus(Long roomId, RoomRequest roomRequest) {
+        Optional<Rooms> roomOptional = roomsRepository.findById(roomId);
+        if (roomOptional.isPresent()) {
+            Rooms room = roomOptional.get();
+            room.setRoomName(roomRequest.roomName());
+            room.setCapacity(roomRequest.capacity());
+            room.setFeatures(roomRequest.features());
+            roomsRepository.save(room);
+            return room.getId();
+        } else {
+            throw new IllegalArgumentException("Room with ID " + roomId + " not found");
+        }
     }
-
 
     @Override
     public void deleteRoomStatus(Long roomId) {
-        log.debug("Deleting room with id {}", roomId);
-        roomsRepository.deleteById(roomId);
-        log.info("Room with id {} deleted successfully", roomId);
-    }
-
-    private RoomResponse mapToRoomResponse(Rooms room) {
-        return new RoomResponse(
-                room.getId(),
-                room.getRoomName(),
-                room.getCapacity(),
-                room.getFeatures(),
-                room.isAvailable()
-        );
+        Optional<Rooms> roomOptional = roomsRepository.findById(roomId);
+        if (roomOptional.isPresent()) {
+            roomsRepository.deleteById(roomId);
+        } else {
+            throw new IllegalArgumentException("Room with ID " + roomId + " not found");
+        }
     }
 
     @Override
     public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime) {
-        // Your logic to check availability goes here
-        return true; // Replace this with actual implementation
+        // Assuming RoomAvailability is being stored in the Room model or some other table in the database
+        // Check if the room is available during the provided time window
+
+        // Example: You may have a "Bookings" table in the database that tracks which room is booked during which time
+        List<Rooms> conflictingBookings = roomsRepository.findConflictingBookings(roomId, startTime, endTime);
+        return conflictingBookings.isEmpty();
     }
 }
