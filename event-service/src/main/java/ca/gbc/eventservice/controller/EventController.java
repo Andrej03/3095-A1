@@ -31,13 +31,13 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventResponse> getEventById(@PathVariable("eventId") String eventId) {
+    public ResponseEntity<EventResponse> getEventById(@PathVariable("eventId") Long eventId) {
         EventResponse eventResponse = eventService.getEventById(eventId);
         return eventResponse != null ? new ResponseEntity<>(eventResponse, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{eventId}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable("eventId") String eventId) {
+    public ResponseEntity<Void> deleteEvent(@PathVariable("eventId") Long eventId) {
         eventService.deleteEvent(eventId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

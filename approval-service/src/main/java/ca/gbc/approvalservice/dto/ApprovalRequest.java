@@ -1,13 +1,15 @@
 package ca.gbc.approvalservice.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Builder
+@Getter
+@Setter
+@AllArgsConstructor
 public class ApprovalRequest {
-    private String eventId; // The ID of the event to be approved
-    private String userId; // The ID of the user requesting the approval
-    private boolean approved; // Approval status
-    private String comments; // Comments related to the approval
+    private Long eventId;
+    private Long userId;
+    private boolean approved;
+    private String approvalStatus;
 }

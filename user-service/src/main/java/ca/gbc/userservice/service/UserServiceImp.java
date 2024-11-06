@@ -69,8 +69,8 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public String getUserRole(String userId) {
-        Users user = userRepository.findById(Long.valueOf(userId)).orElse(null);
+    public String getUserRole(Long userId) {
+        Users user = userRepository.findById(userId).orElse(null);
         return user != null ? user.getRole().name() : null; // Ensure you're returning a String representation
     }
 }

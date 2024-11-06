@@ -14,9 +14,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 public class Events {
     @Id
-    private String id;
+    private Long id;
     private String eventName;
-    private String organizerId;
+    private Long organizerId;
     private String eventType;
-    private int expectedAttendees;
+    private Integer expectedAttendees;
 }

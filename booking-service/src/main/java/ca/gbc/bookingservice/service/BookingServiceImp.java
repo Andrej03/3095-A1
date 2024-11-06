@@ -4,12 +4,12 @@ import ca.gbc.bookingservice.dto.BookingRequest;
 import ca.gbc.bookingservice.dto.BookingResponse;
 import ca.gbc.bookingservice.model.Booking;
 import ca.gbc.bookingservice.repository.BookingRepository;
+import ca.gbc.bookingservice.client.RoomClient;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,10 +18,14 @@ public class BookingServiceImp implements BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingServiceImp.class);
     private final BookingRepository bookingRepository;
+    private final RoomClient roomClient;
 
     @Override
     public BookingResponse createBooking(BookingRequest bookingRequest) {
-        if (isRoomAvailable(bookingRequest.roomId(), bookingRequest.startTime(), bookingRequest.endTime())) {
+        String startTimeStr = bookingRequest.startTime().toString();
+        String endTimeStr = bookingRequest.endTime().toString();
+
+        if (roomClient.isRoomAvailable(bookingRequest.roomId(), startTimeStr, endTimeStr)) {
             Booking booking = Booking.builder()
                     .userId(bookingRequest.userId())
                     .roomId(bookingRequest.roomId())
@@ -39,6 +43,7 @@ public class BookingServiceImp implements BookingService {
         }
     }
 
+
     @Override
     public List<BookingResponse> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
@@ -51,10 +56,5 @@ public class BookingServiceImp implements BookingService {
     public void cancelBooking(String bookingId) {
         log.debug("Cancelling booking with id {}", bookingId);
         bookingRepository.deleteById(bookingId);
-    }
-
-    private boolean isRoomAvailable(String roomId, LocalDateTime startTime, LocalDateTime endTime) {
-        List<Booking> conflictingBookings = bookingRepository.findByRoomIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(roomId, startTime, endTime);
-        return conflictingBookings.isEmpty();
     }
 }

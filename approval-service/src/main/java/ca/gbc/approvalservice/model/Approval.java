@@ -1,22 +1,26 @@
 package ca.gbc.approvalservice.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Document(value = "approval")
 @Entity
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
 public class Approval {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String eventId; // ID of the event being approved
-    private String userId; // ID of the user who requested approval
-    private boolean approved; // Approval status
-    private String comments; // Comments or notes related to the approval
+    private Long eventId;
+    private Long userId;
+    private boolean approved;
+    private String approvalStatus;
 }
