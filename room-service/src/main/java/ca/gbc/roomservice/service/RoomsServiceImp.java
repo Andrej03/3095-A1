@@ -43,7 +43,7 @@ public class RoomsServiceImp implements RoomsService {
     }
 
     @Override
-    public int updateRoomStatus(int roomId, RoomRequest roomRequest) {
+    public Long updateRoomStatus(Long roomId, RoomRequest roomRequest) {  // Change return type to Long
         log.debug("Updating room with id {}", roomId);
 
         Rooms room = roomsRepository.findById(roomId).orElseThrow(() -> {
@@ -59,11 +59,12 @@ public class RoomsServiceImp implements RoomsService {
         roomsRepository.save(room);
         log.info("Room {} updated successfully", room.getId());
 
-        return room.getId();
+        return room.getId();  // Return Long ID
     }
 
+
     @Override
-    public void deleteRoomStatus(int roomId) {
+    public void deleteRoomStatus(Long roomId) {
         log.debug("Deleting room with id {}", roomId);
         roomsRepository.deleteById(roomId);
         log.info("Room with id {} deleted successfully", roomId);
@@ -80,7 +81,7 @@ public class RoomsServiceImp implements RoomsService {
     }
 
     @Override
-    public boolean isRoomAvailable(String roomId, LocalDateTime startTime, LocalDateTime endTime) {
+    public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime) {
         // Your logic to check availability goes here
         return true; // Replace this with actual implementation
     }

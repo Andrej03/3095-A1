@@ -9,7 +9,7 @@ import java.util.List;
 public interface RoomsService {
     RoomResponse createRoomStatus(RoomRequest roomRequest);
     List<RoomResponse> getAllRooms();
-    int updateRoomStatus(int roomId, RoomRequest roomRequest);
-    void deleteRoomStatus(int roomId);
-    boolean isRoomAvailable(String roomId, LocalDateTime parse, LocalDateTime parse1);
+    Long updateRoomStatus(Long roomId, RoomRequest roomRequest);
+    void deleteRoomStatus(Long roomId);
+    boolean isRoomAvailable(Long roomId, LocalDateTime parse, LocalDateTime parse1);
 }
