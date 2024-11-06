@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImp implements UserService {
@@ -44,6 +45,21 @@ public class UserServiceImp implements UserService {
     public UserResponse getUserById(Long userId) {
         Users user = userRepository.findById(userId).orElse(null);
         return user != null ? new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getUserType()) : null;
+    }
+
+    @Override
+    public UserResponse updateUser(Long userId, UserRequest userRequest) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        user.setName(userRequest.name());
+        user.setEmail(userRequest.email());
+        user.setRole(userRequest.role());
+        user.setUserType(userRequest.userType());
+
+        userRepository.save(user);
+
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getUserType());
     }
 
     @Override

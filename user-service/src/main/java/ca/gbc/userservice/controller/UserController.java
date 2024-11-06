@@ -36,6 +36,15 @@ public class UserController {
         return userResponse != null ? new ResponseEntity<>(userResponse, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @PutMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable("userId") Long userId,
+            @RequestBody UserRequest userRequest) {
+        UserResponse updatedUser = userService.updateUser(userId, userRequest);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable("userId") Long userId) {
         userService.deleteUser(userId);
