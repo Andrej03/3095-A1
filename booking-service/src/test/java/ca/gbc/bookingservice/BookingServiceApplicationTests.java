@@ -1,105 +1,133 @@
 package ca.gbc.bookingservice;
 
-import ca.gbc.bookingservice.client.RoomClient;
-import ca.gbc.bookingservice.dto.BookingRequest;
-import ca.gbc.bookingservice.dto.BookingResponse;
-import ca.gbc.bookingservice.model.Booking;
-import ca.gbc.bookingservice.repository.BookingRepository;
-import ca.gbc.bookingservice.service.BookingServiceImp;
+import io.restassured.RestAssured;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
+@Testcontainers
 public class BookingServiceApplicationTests {
 
-    @Mock
-    private RoomClient roomClient;
+    @Container
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
-    @Mock
-    private BookingRepository bookingRepository;
+    @LocalServerPort
+    private Integer port;
 
-    @InjectMocks
-    private BookingServiceImp bookingService;
-
-    private BookingRequest bookingRequest;
+    static{
+        mongoDBContainer.start();
+    }
 
     @BeforeEach
-    void setup() {
-        // Mock the repository to return an empty list of bookings for the specific room.
-        when(bookingRepository.findByRoomIdAndStartTimeAndEndTime(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(Collections.emptyList()); // Room is available.
+    public void setup() {
+        // Set the base URI for all requests
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = port;
     }
 
     @Test
-    void testCreateBookingWhenRoomIsAvailable() {
-        // Arrange
-        String expectedId = "generated-id-123"; // Mocked ID as a String (as MongoDB generates it)
-        when(roomClient.isRoomAvailable(anyString(), anyString(), anyString())).thenReturn(true);
+    public void testCreateBooking() {
+        String bookingPayload = """
+                {
+                    "roomId": 101,
+                    "userId": 1,
+                    "startTime": "2024-11-10T09:00:00",
+                    "endTime": "2024-11-10T10:00:00"
+                }
+                """;
 
-        // Mocking bookingRepository.save to return a booking with a generated String ID
-        when(bookingRepository.save(any(Booking.class))).thenReturn(
-                new Booking(expectedId, bookingRequest.userId(), bookingRequest.roomId(),
-                        bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose())
-        );
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .body(bookingPayload)
+                .when()
+                .post("/bookings")
+                .then()
+                .log().all()
+                .statusCode(201)  // Assert that the status code is 201 (Created)
+                .extract()
+                .body().asString();
 
-        // Act
-        BookingResponse bookingResponse = bookingService.createBooking(bookingRequest);
-
-        // Assert
-        assertNotNull(bookingResponse);
-        assertEquals(expectedId, bookingResponse.id());
-        verify(roomClient, times(1)).isRoomAvailable(anyString(), anyString(), anyString());
-        verify(bookingRepository, times(1)).save(any(Booking.class));
+        // Assert the response message
+        assertThat(responseBodyString, Matchers.is("Booking successfully created"));
     }
 
     @Test
-    void testCreateBookingWhenRoomIsNotAvailable() {
-        // Arrange
-        when(roomClient.isRoomAvailable(anyString(), anyString(), anyString())).thenReturn(false);
+    public void testBookingConflict() {
+        String conflictingBookingPayload = """
+                {
+                    "roomId": 101,
+                    "userId": 2,
+                    "startTime": "2024-11-10T09:00:00",
+                    "endTime": "2024-11-10T10:00:00"
+                }
+                """;
 
-        // Act & Assert
-        IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> {
-            bookingService.createBooking(bookingRequest);
-        });
-        assertEquals("Room is already booked for the requested time.", thrown.getMessage());
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .body(conflictingBookingPayload)
+                .when()
+                .post("/bookings")
+                .then()
+                .log().all()
+                .statusCode(409)  // Conflict status code for resource conflict
+                .extract()
+                .body().asString();
+
+        // Assert the response message
+        assertThat(responseBodyString, Matchers.is("Room is already booked for the selected time"));
     }
 
     @Test
-    void testGetAllBookings() {
-        // Arrange
-        String expectedId = "generated-id-123"; // Mocked ID as a String
-        Booking booking = new Booking(expectedId, bookingRequest.userId(), bookingRequest.roomId(),
-                bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose());
-        when(bookingRepository.findAll()).thenReturn(Collections.singletonList(booking));
+    public void testInvalidBookingRequest() {
+        String invalidBookingPayload = """
+                {
+                    "roomId": -1,
+                    "userId": 1,
+                    "startTime": "2024-11-10T09:00:00",
+                    "endTime": "2024-11-10T08:00:00"
+                }
+                """;
 
-        // Act
-        List<BookingResponse> bookings = bookingService.getAllBookings();
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .body(invalidBookingPayload)
+                .when()
+                .post("/bookings")
+                .then()
+                .log().all()
+                .statusCode(400)  // Bad request for invalid inputs
+                .extract()
+                .body().asString();
 
-        // Assert
-        assertNotNull(bookings);
-        assertEquals(1, bookings.size());
-        assertEquals(expectedId, bookings.getFirst().id());  // Expect String ID
+        // Assert the response message
+        assertThat(responseBodyString, Matchers.is("Invalid booking request"));
     }
 
     @Test
-    void testCancelBooking() {
-        // Act
-        bookingService.cancelBooking("generated-id-123");  // Pass a String ID for MongoDB
+    public void testGetBookingById() {
+        var responseBodyString = RestAssured.given()
+                .when()
+                .get("/bookings/1")  // Adjust the endpoint according to your API path
+                .then()
+                .log().all()
+                .statusCode(200)  // Assert that the status code is 200 (OK)
+                .extract()
+                .body().asString();
 
-        // Assert
-        verify(bookingRepository, times(1)).deleteById("generated-id-123");  // Expect String ID
+        // Assert the response body or any specific field
+        assertThat(responseBodyString, Matchers.is("{\"roomId\": 101, \"userId\": 1, \"startTime\": \"2024-11-10T09:00:00\"}"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        mongoDBContainer.stop();
     }
 }

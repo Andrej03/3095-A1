@@ -24,7 +24,6 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
-    // Combined enums for role and userType (if they are meant to represent the same set of values)
     public enum Role {
         STUDENT,
         STAFF,

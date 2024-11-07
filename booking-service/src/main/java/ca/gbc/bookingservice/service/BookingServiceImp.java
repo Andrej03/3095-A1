@@ -1,10 +1,10 @@
 package ca.gbc.bookingservice.service;
 
+import ca.gbc.bookingservice.client.RoomClient;
 import ca.gbc.bookingservice.dto.BookingRequest;
 import ca.gbc.bookingservice.dto.BookingResponse;
 import ca.gbc.bookingservice.model.Booking;
 import ca.gbc.bookingservice.repository.BookingRepository;
-import ca.gbc.bookingservice.client.RoomClient;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +37,13 @@ public class BookingServiceImp implements BookingService {
                     .build();
 
             // Save the booking and allow MongoDB to generate the ID
-            booking = bookingRepository.save(booking);  // Save returns the saved entity with an ID
+            booking = bookingRepository.save(booking);
 
             log.info("New booking created: {}", booking);
 
             // Return the booking response with the ID from MongoDB
             return new BookingResponse(
-                    booking.getId(),        // This will now have the generated String ID from MongoDB
+                    booking.getId(),        // MongoDB-generated String ID
                     booking.getUserId(),
                     booking.getRoomId(),
                     booking.getStartTime(),
@@ -56,8 +56,6 @@ public class BookingServiceImp implements BookingService {
         }
     }
 
-
-
     @Override
     public List<BookingResponse> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
@@ -67,8 +65,8 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    public void cancelBooking(String bookingId) {  // Changed parameter type to String
+    public void cancelBooking(String bookingId) {
         log.debug("Cancelling booking with id {}", bookingId);
-        bookingRepository.deleteById(bookingId);  // Updated to match String ID type
+        bookingRepository.deleteById(bookingId);
     }
 }

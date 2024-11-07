@@ -21,27 +21,26 @@ class UserServiceApplicationTests {
     @LocalServerPort
     private Integer port;
 
+    static {
+        postgreSQLContainer.start();
+    }
+
     @BeforeEach
     void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
 
-    static {
-        postgreSQLContainer.start();
-    }
-
     @Test
-    void shouldCreateUser() {
+    void testCreateUser() {
         String createUserJson = """
-                {
-                    "id": "1L"
-                    "name": "John Doe",
-                    "email": "john.doe@example.com",
-                    "role": "STAFF",
-                    "userType": "STAFF"
-                }
-                """;
+            {
+                "name": "John Doe",
+                "email": "john.doe@example.com",
+                "role": "STAFF",
+                "userType": "STAFF"
+            }
+            """;
 
         var responseBodyString = RestAssured.given()
                 .contentType("application/json")
@@ -55,10 +54,12 @@ class UserServiceApplicationTests {
                 .body().asString();
 
         assertThat(responseBodyString, Matchers.containsString("John Doe"));
+        assertThat(responseBodyString, Matchers.containsString("STAFF"));
     }
 
+
     @Test
-    void shouldGetAllUsers() {
+    void testGetAllUsers() {
         var responseBody = RestAssured.given()
                 .contentType("application/json")
                 .when()
@@ -72,8 +73,9 @@ class UserServiceApplicationTests {
         assertThat(responseBody, Matchers.containsString("John Doe"));
     }
 
+
     @Test
-    void shouldGetUserById() {
+    void testGetUserById() {
         // Assuming user with ID 1 exists
         long userId = 1L;
 
@@ -88,10 +90,12 @@ class UserServiceApplicationTests {
                 .body().asString();
 
         assertThat(responseBody, Matchers.containsString("John Doe"));
+        assertThat(responseBody, Matchers.containsString("STAFF"));
     }
 
+
     @Test
-    void shouldDeleteUser() {
+    void testDeleteUser() {
         // Assuming user with ID 1 exists
         long userId = 1L;
 
@@ -102,4 +106,24 @@ class UserServiceApplicationTests {
                 .log().all()
                 .statusCode(204);
     }
+
+    @Test
+    void testGetUserRole() {
+        // Assuming user with ID 1 exists
+        long userId = 1L;
+
+        var response = RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/users/" + userId + "/role")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .extract()
+                .asString();
+
+        assertThat(response, Matchers.containsString("STAFF"));
+    }
+
+
 }

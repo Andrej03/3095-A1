@@ -1,93 +1,165 @@
 package ca.gbc.eventservice;
 
-import ca.gbc.eventservice.dto.EventRequest;
-import ca.gbc.eventservice.service.EventServiceImp;
-import ca.gbc.eventservice.repository.EventRepository;
-import ca.gbc.userservice.service.UserService;
+import io.restassured.RestAssured;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
 
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@Import(TestcontainersConfiguration.class)
-@SpringBootTest
 public class EventServiceApplicationTests {
 
-	@Mock
-	private UserService userService;  // Mocking UserService
+	@Container
+	public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
-	@InjectMocks
-	private EventServiceImp eventServiceImp;  // Injecting EventServiceImp
+	@LocalServerPort
+	private Integer port;
 
-	@Autowired
-	private EventRepository testEventRepository;
+	static {
+		mongoDBContainer.start();
+	}
 
-	@Test
-	void contextLoads() {
-		// Test if the application context loads without issues
-		assertNotNull(testEventRepository, "EventRepository should be initialized.");
+	@BeforeEach
+	public void setup() {
+		// Set the base URI for all requests
+		RestAssured.baseURI = "http://localhost";
+		RestAssured.port = port;
 	}
 
 	@Test
-	void testEventServiceImpNotNull() {
-		// Verify that EventServiceImp is loaded into the Spring context
-		assertNotNull(eventServiceImp, "EventServiceImp should be initialized.");
+	public void testCreateEvent() {
+		String eventPayload = """
+            {
+                "eventName": "Tech Conference 2024",
+                "organizerId": "123",
+                "eventType": "Conference",
+                "expectedAttendees": 100
+            }
+            """;
+
+		var responseBodyString = RestAssured.given()
+				.contentType("application/json")
+				.body(eventPayload)
+				.when()
+				.post("/api/events")
+				.then()
+				.log().all()
+				.statusCode(201)  // Assert that the status code is 201 (Created)
+				.extract()
+				.body().asString();
+
+		// Assert the response message
+		assertThat(responseBodyString, Matchers.containsString("eventName"));
+		assertThat(responseBodyString, Matchers.containsString("Tech Conference 2024"));
 	}
 
 	@Test
-	void testEventRepositoryIntegration() {
-		// Test if EventRepository is functioning correctly with Testcontainers (for MongoDB)
-		assertNotNull(testEventRepository, "Test EventRepository should be connected to Testcontainers MongoDB instance.");
+	public void testCreateEventWithTooManyAttendeesForStudent() {
+		// Create a sample event request for a student with too many attendees
+		String eventRequestJson = """
+            {
+                "eventName": "Student Conference",
+                "organizerId": "2",
+                "eventType": "Conference",
+                "expectedAttendees": 15
+            }
+            """;
+
+		// Send a POST request and check if it throws the appropriate error
+		var responseBodyString = RestAssured.given()
+				.contentType("application/json")
+				.body(eventRequestJson)
+				.when()
+				.post("/api/events")
+				.then()
+				.log().all()
+				.statusCode(400)  // Should return a bad request
+				.extract()
+				.body().asString();
+
+		// Assert the response message
+		assertThat(responseBodyString, Matchers.containsString("Students cannot organize events with more than 10 attendees."));
 	}
 
 	@Test
-	void testServiceFunctionality() {
-		// Arrange mock behaviors for the UserService
-		Long organizerId = 123L;  // Use Long for organizerId
-		String userRole = "FACULTY";  // Assume the user role is faculty
-		when(userService.getUserRole(organizerId)).thenReturn(userRole);
+	public void testGetAllEvents() {
+		// Send a GET request to retrieve all events
+		var responseBodyString = RestAssured.given()
+				.when()
+				.get("/api/events")
+				.then()
+				.log().all()
+				.statusCode(200)  // Ensure the request was successful
+				.extract()
+				.body().asString();
 
-		// Test the functionality of creating an event using EventServiceImp
-		EventRequest eventRequest = new EventRequest("Test Event", "123", "Conference", 50); // String organizerId
-		assertNotNull(eventServiceImp.createEvent(eventRequest), "The event creation should not return null.");
+		// Assert that the response body contains at least 2 events in the list
+		assertThat(responseBodyString, Matchers.containsString("\"id\":"));
 	}
 
 	@Test
-	void testInvalidOrganizerId() {
-		// Arrange mock behaviors for the UserService
-		String invalidOrganizerId = "invalid";  // Invalid ID (non-numeric String)
+	public void testGetEventById() {
+		String eventId = "event123";  // Replace with an actual event ID for testing
 
-		// Test the exception when passing an invalid organizer ID
-		EventRequest eventRequest = new EventRequest("Test Event", invalidOrganizerId, "Conference", 50);
+		var responseBodyString = RestAssured.given()
+				.when()
+				.get("/api/events/" + eventId)
+				.then()
+				.log().all()
+				.statusCode(200)  // Assert that the status code is 200 (OK)
+				.extract()
+				.body().asString();
 
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> eventServiceImp.createEvent(eventRequest));
-
-		// Assert that the exception message contains the expected error
-		assert(exception.getMessage().contains("Organizer ID must be a valid number"));
+		// Assert the response contains the expected event details
+		assertThat(responseBodyString, Matchers.containsString("eventName"));
+		assertThat(responseBodyString, Matchers.containsString("Tech Conference 2024"));
 	}
 
 	@Test
-	void testStudentEventRestriction() {
-		// Arrange mock behaviors for the UserService
-		Long organizerId = 123L;  // Use Long for organizerId
-		String userRole = "STUDENT";  // Assume the user role is student
-		when(userService.getUserRole(organizerId)).thenReturn(userRole);
+	public void testDeleteEvent() {
+		String eventId = "event123";  // Replace with an actual event ID for testing
 
-		// Test the functionality of creating an event with too many attendees for a student
-		EventRequest eventRequest = new EventRequest("Test Event", "123", "Conference", 50); // String organizerId
+		RestAssured.given()
+				.when()
+				.delete("/api/events/" + eventId)
+				.then()
+				.log().all()
+				.statusCode(204);  // Assert that the status code is 204 (No Content)
+	}
 
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> eventServiceImp.createEvent(eventRequest));
+	@Test
+	void testToFailWhenUserPermissionIsNotGiven() {
+		long userId = 2L;
 
-		// Assert that the exception message contains the expected error
-		assert(exception.getMessage().contains("Students cannot organize events with more than 10 attendees."));
+		String createEventJson = """
+            {
+                "name": "Test Event",
+                "organizerId":""" + userId + """
+            }
+            """;
+
+		var responseBodyString = RestAssured.given()
+				.contentType("application/json")
+				.body(createEventJson)
+				.when()
+				.post("/api/events")
+				.then()
+				.log().all()
+				.statusCode(403)  // Forbidden for non-STAFF users
+				.extract()
+				.body().asString();
+
+		// Assert the response contains a message indicating lack of permission
+		assertThat(responseBodyString, Matchers.containsString("Forbidden for non-STAFF users"));
+	}
+
+
+	@AfterEach
+	void tearDown() {
+		mongoDBContainer.stop();
 	}
 }

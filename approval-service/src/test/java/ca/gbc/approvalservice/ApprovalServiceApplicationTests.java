@@ -1,21 +1,17 @@
 package ca.gbc.approvalservice;
 
-import ca.gbc.approvalservice.dto.ApprovalResponse;
-import ca.gbc.approvalservice.service.ApprovalService;
-import ca.gbc.approvalservice.model.Approval;
-import ca.gbc.approvalservice.repository.ApprovalRepository;
+import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Testcontainers
@@ -24,77 +20,177 @@ public class ApprovalServiceApplicationTests {
     @Container
     public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
-    @Autowired
-    private ApprovalRepository approvalRepository;
+    @LocalServerPort
+    private Integer port;
 
-    @Autowired
-    private ApprovalService approvalService;
-
-    private String approvalId;
+    static {
+        mongoDBContainer.start();
+    }
 
     @BeforeEach
     void setUp() {
-        mongoDBContainer.start();
-        approvalId = approvalService.toString();
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = port;
     }
 
     @Test
     void testCreateApproval() {
-        Approval approval = new Approval(null, 1L, 1L, true, "Approved");
-        approvalRepository.save(approval);
+        String createApprovalJson = """
+                {
+                    "eventId": 1,
+                    "userId": 1,
+                    "approved": true,
+                    "approvalStatus": "Approved"
+                }
+                """;
 
-        assertNotNull(approval.getId());
-        assertEquals(1L, approval.getEventId());
-        assertEquals(1L, approval.getUserId());
-        assertTrue(approval.isApproved());
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .body(createApprovalJson)
+                .when()
+                .post("/api/approvals")
+                .then()
+                .log().all()
+                .statusCode(201)  // Created status
+                .extract()
+                .body().asString();
 
-        mongoDBContainer.stop();
+        // Verifying the response body
+        assertThat(responseBodyString, containsString("Approved"));
+
+        // Verifying that the approval was created successfully
+        RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/approvals")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body(containsString("Approved"));
     }
 
     @Test
     void testGetAllApprovals() {
         // Add two more approvals for testing
-        approvalRepository.save(new Approval(null, 2L, 2L, true, "Approved"));
-        approvalRepository.save(new Approval(null, 3L, 3L, false, "Rejected"));
+        String createApprovalJson1 = """
+                {
+                    "eventId": 2,
+                    "userId": 2,
+                    "approved": true,
+                    "approvalStatus": "Approved"
+                }
+                """;
+
+        String createApprovalJson2 = """
+                {
+                    "eventId": 3,
+                    "userId": 3,
+                    "approved": false,
+                    "approvalStatus": "Rejected"
+                }
+                """;
+
+        RestAssured.given()
+                .contentType("application/json")
+                .body(createApprovalJson1)
+                .when()
+                .post("/api/approvals")
+                .then()
+                .statusCode(201);
+
+        RestAssured.given()
+                .contentType("application/json")
+                .body(createApprovalJson2)
+                .when()
+                .post("/api/approvals")
+                .then()
+                .statusCode(201);
 
         // Retrieve all approvals
-        List<ApprovalResponse> approvals = approvalRepository.findAll().stream()
-                .map(approval -> new ApprovalResponse(
-                        approval.getId(),
-                        approval.getEventId(),
-                        approval.getUserId(),
-                        approval.isApproved(),
-                        approval.getApprovalStatus()))
-                .toList();
+        var responseBody = RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/approvals")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .extract()
+                .body().asString();
 
-        assertNotNull(approvals);
-        assertEquals(3, approvals.size());
+        // Verifying the response contains approval statuses
+        assertThat(responseBody, containsString("Approved"));
+        assertThat(responseBody, containsString("Rejected"));
     }
 
     @Test
     void testGetApprovalById() {
-        ApprovalResponse approvalResponse = approvalRepository.findById(approvalId)
-                .map(approval -> new ApprovalResponse(
-                        approval.getId(),
-                        approval.getEventId(),
-                        approval.getUserId(),
-                        approval.isApproved(),
-                        approval.getApprovalStatus()))
-                .orElse(null);
+        // Assuming approvalId 1 exists for testing
+        long approvalId = 1L;
 
-        assertNotNull(approvalResponse);
-        assertEquals(1L, approvalResponse.getEventId());
-        assertEquals(1L, approvalResponse.getUserId());
-        assertTrue(approvalResponse.isApproved());
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/approvals/" + approvalId)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .extract()
+                .body().asString();
+
+        // Verifying the response body
+        assertThat(responseBodyString, containsString("Approved"));
+
+        RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/approvals/" + approvalId)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body(containsString("Approved"));
     }
 
     @Test
     void testDeleteApproval() {
-        // Delete the approval we created earlier
-        approvalRepository.deleteById(approvalId);
+        // Assuming approvalId 1 exists for deletion
+        long approvalId = 1L;
 
-        // Verify it was deleted
-        assertFalse(approvalRepository.existsById(approvalId));
+        // Delete the approval
+        RestAssured.given()
+                .when()
+                .delete("/api/approvals/" + approvalId)
+                .then()
+                .log().all()
+                .statusCode(204);  // No content status on successful deletion
+
+        // Verify it was deleted by checking its absence
+        RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .get("/api/approvals/" + approvalId)
+                .then()
+                .log().all()
+                .statusCode(404);  // Not found after deletion
+    }
+
+    @Test
+    void testFailWhenNonStaffApprovesEvent() {
+        // Assuming user with ID 2 is a STUDENT and cannot approve events
+        long userId = 2L;
+        long eventId = 1L; // Sample eventId
+
+        var responseBodyString = RestAssured.given()
+                .contentType("application/json")
+                .when()
+                .post("/api/approvals/" + eventId + "/approve?userId=" + userId)
+                .then()
+                .log().all()
+                .statusCode(403)  // Forbidden for non-STAFF users
+                .extract()
+                .body().asString();
+
+        // Verifying that the response body matches the expected error message
+        assertThat(responseBodyString, containsString("Forbidden"));
     }
 
     @AfterEach
