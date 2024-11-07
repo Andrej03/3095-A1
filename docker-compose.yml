@@ -1,4 +1,4 @@
-version: '4.0'
+#version: '4.0'
 
 services:
 
@@ -89,7 +89,6 @@ services:
   # MongoDB Service
   mongodb:
     image: mongo:latest
-    container_name: mongodb-a1
     ports:
       - "27019:27017"
     environment:
@@ -103,7 +102,7 @@ services:
 
   # Mongo Express
   mongo-express:
-    image: mongo-express-a1
+    image: mongo-express
     ports:
       - "8083:8081"
     environment:
