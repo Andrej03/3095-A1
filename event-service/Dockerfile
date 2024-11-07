@@ -19,11 +19,9 @@ RUN mkdir /app
 
 COPY --from=builder /home/gradle/src/build/libs/*.jar /app/event-service.jar
 
-# Use environment variables for MongoDB credentials
-#ENV MONGO_DB_USERNAME=admin \
-#    MONGO_DB_PWD=password \
-#    SPRING_DATA_MONGODB_URI=mongodb://${MONGO_DB_USERNAME}:${MONGO_DB_PWD}@mongo:27017/eventdb
+ENV MONGO_DB_USERNAME=admin \
+    MONGO_DB_PWD=password
 
-EXPOSE 8088
+EXPOSE 8086
 
 ENTRYPOINT ["java", "-jar", "/app/event-service.jar"]

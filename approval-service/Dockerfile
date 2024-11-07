@@ -19,11 +19,9 @@ RUN mkdir /app
 
 COPY --from=builder /home/gradle/src/build/libs/*.jar /app/approval-service.jar
 
-# Use environment variables for MongoDB credentials or PostgreSQL credentials if needed
-#ENV MONGO_DB_USERNAME=admin \
-#    MONGO_DB_PWD=password \
-#    SPRING_DATA_MONGODB_URI=mongodb://${MONGO_DB_USERNAME}:${MONGO_DB_PWD}@mongo:27017/approvaldb
+ENV MONGO_DB_USERNAME=admin \
+    MONGO_DB_PWD=password
 
-EXPOSE 8089
+EXPOSE 8087
 
 ENTRYPOINT ["java", "-jar", "/app/approval-service.jar"]
