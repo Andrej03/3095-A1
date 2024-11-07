@@ -69,9 +69,7 @@ public class EventServiceApplicationTests {
 		// Test the exception when passing an invalid organizer ID
 		EventRequest eventRequest = new EventRequest("Test Event", invalidOrganizerId, "Conference", 50);
 
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-			eventServiceImp.createEvent(eventRequest);
-		});
+		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> eventServiceImp.createEvent(eventRequest));
 
 		// Assert that the exception message contains the expected error
 		assert(exception.getMessage().contains("Organizer ID must be a valid number"));
@@ -87,9 +85,7 @@ public class EventServiceApplicationTests {
 		// Test the functionality of creating an event with too many attendees for a student
 		EventRequest eventRequest = new EventRequest("Test Event", "123", "Conference", 50); // String organizerId
 
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-			eventServiceImp.createEvent(eventRequest);
-		});
+		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> eventServiceImp.createEvent(eventRequest));
 
 		// Assert that the exception message contains the expected error
 		assert(exception.getMessage().contains("Students cannot organize events with more than 10 attendees."));
