@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
-@Import(TestcontainersConfiguration.class)  // Import your Testcontainers config if needed
+@Import(TestcontainersConfiguration.class)
 @SpringBootTest
-class EventServiceApplicationTests {
+public class EventServiceApplicationTests {
 
 	@Mock
 	private UserService userService;  // Mocking UserService

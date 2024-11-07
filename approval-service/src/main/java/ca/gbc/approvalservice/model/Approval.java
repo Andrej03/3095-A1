@@ -1,15 +1,13 @@
 package ca.gbc.approvalservice.model;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Entity;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+@Document
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,8 +15,7 @@ import lombok.Setter;
 public class Approval {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id; // Change this from Long to String
+    private String id;
     private Long eventId;
     private Long userId;
     private boolean approved;

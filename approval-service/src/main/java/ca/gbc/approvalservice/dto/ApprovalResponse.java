@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ApprovalResponse {
-    private String id; // Change this from Long to String
+    private String id;
     private Long eventId;
     private Long userId;
     private boolean approved;

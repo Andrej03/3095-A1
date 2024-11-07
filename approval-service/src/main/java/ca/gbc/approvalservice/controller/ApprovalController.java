@@ -3,7 +3,6 @@ package ca.gbc.approvalservice.controller;
 import ca.gbc.approvalservice.dto.ApprovalRequest;
 import ca.gbc.approvalservice.dto.ApprovalResponse;
 import ca.gbc.approvalservice.service.ApprovalService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +11,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/approvals")
-@RequiredArgsConstructor
 public class ApprovalController {
 
     private final ApprovalService approvalService;
+
+    public ApprovalController(ApprovalService approvalService) {
+        this.approvalService = approvalService;
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -31,15 +33,18 @@ public class ApprovalController {
     }
 
     @GetMapping("/{approvalId}")
-    public ResponseEntity<ApprovalResponse> getApprovalById(@PathVariable("approvalId") String approvalId) {
+    public ResponseEntity<ApprovalResponse> getApprovalById(@PathVariable String approvalId) {
         ApprovalResponse approvalResponse = approvalService.getApprovalById(approvalId);
-        return approvalResponse != null ? new ResponseEntity<>(approvalResponse, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (approvalResponse != null) {
+            return ResponseEntity.ok(approvalResponse);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{approvalId}")
-    public ResponseEntity<Void> deleteApproval(@PathVariable("approvalId") String approvalId) {
+    public ResponseEntity<Void> deleteApproval(@PathVariable String approvalId) {
         approvalService.deleteApproval(approvalId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -10,5 +10,4 @@ public interface ApprovalService {
     List<ApprovalResponse> getAllApprovals();
     ApprovalResponse getApprovalById(String approvalId);
     void deleteApproval(String approvalId);
-
 }

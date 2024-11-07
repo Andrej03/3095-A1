@@ -4,69 +4,55 @@ import ca.gbc.approvalservice.dto.ApprovalRequest;
 import ca.gbc.approvalservice.dto.ApprovalResponse;
 import ca.gbc.approvalservice.model.Approval;
 import ca.gbc.approvalservice.repository.ApprovalRepository;
-import ca.gbc.eventservice.model.Events;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ApprovalServiceImp implements ApprovalService {
 
     private final ApprovalRepository approvalRepository;
-    private final RestTemplate restTemplate;
+
+    public ApprovalServiceImp(ApprovalRepository approvalRepository) {
+        this.approvalRepository = approvalRepository;
+    }
 
     @Override
-    @Transactional
     public ApprovalResponse createApproval(ApprovalRequest approvalRequest) {
-        // Validate if event exists
-        Events event = restTemplate.getForObject("http://event-service/events/" + approvalRequest.getEventId(), Events.class);
-        if (event == null) {
-            throw new IllegalArgumentException("Event not found");
+        // Business logic to create an approval
+        Approval approval = new Approval();
+        approval.setEventId(approvalRequest.getEventId());
+        approval.setUserId(approvalRequest.getUserId());
+        approval.setApproved(approvalRequest.isApproved());
+        approval.setApprovalStatus(approvalRequest.getApprovalStatus());
+
+        Approval savedApproval = approvalRepository.save(approval);
+
+        return new ApprovalResponse(savedApproval.getId(), savedApproval.getEventId(),
+                savedApproval.getUserId(), savedApproval.isApproved(), savedApproval.getApprovalStatus());
+    }
+
+    @Override
+    public ApprovalResponse getApprovalById(String approvalId) {
+        Approval approval = approvalRepository.findById(approvalId).orElse(null);
+        if (approval == null) {
+            return null;
         }
-
-        // Validate if user is staff
-        String role = restTemplate.getForObject("http://user-service/users/" + approvalRequest.getUserId() + "/role", String.class);
-        if (!"STAFF".equals(role)) {
-            throw new SecurityException("User is not authorized");
-        }
-
-        // Create the Approval entity
-        Approval approval = new Approval("generated-id", approvalRequest.getEventId(),
-                approvalRequest.getUserId(), approvalRequest.isApproved(),
-                approvalRequest.getApprovalStatus());
-
-        // Save to the repository
-        approvalRepository.save(approval);
-
-        // Return the response
         return new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(),
                 approval.isApproved(), approval.getApprovalStatus());
     }
 
-
-
     @Override
-    public ApprovalResponse getApprovalById(String approvalId) {
-        return approvalRepository.findById(approvalId)
-                .map(approval -> new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(), approval.isApproved(), approval.getApprovalStatus()))
-                .orElse(null);
+    public List<ApprovalResponse> getAllApprovals() {
+        return approvalRepository.findAll().stream()
+                .map(approval -> new ApprovalResponse(approval.getId(), approval.getEventId(),
+                        approval.getUserId(), approval.isApproved(), approval.getApprovalStatus()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public void deleteApproval(String approvalId) {
         approvalRepository.deleteById(approvalId);
-    }
-
-    @Override
-    public List<ApprovalResponse> getAllApprovals() {
-        List<Approval> approvals = approvalRepository.findAll();
-        return approvals.stream()
-                .map(approval -> new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(), approval.isApproved(), approval.getApprovalStatus()))
-                .collect(Collectors.toList());
     }
 }
