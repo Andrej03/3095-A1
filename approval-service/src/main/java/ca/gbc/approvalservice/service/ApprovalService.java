@@ -8,7 +8,7 @@ import java.util.List;
 public interface ApprovalService {
     ApprovalResponse createApproval(ApprovalRequest approvalRequest);
     List<ApprovalResponse> getAllApprovals();
-    ApprovalResponse getApprovalById(Long approvalId);
-    void deleteApproval(Long approvalId);
+    ApprovalResponse getApprovalById(String approvalId);
+    void deleteApproval(String approvalId);
 
 }

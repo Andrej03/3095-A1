@@ -25,7 +25,9 @@ public class BookingServiceImp implements BookingService {
         String startTimeStr = bookingRequest.startTime().toString();
         String endTimeStr = bookingRequest.endTime().toString();
 
+        // Check if the room is available
         if (roomClient.isRoomAvailable(bookingRequest.roomId(), startTimeStr, endTimeStr)) {
+            // Create the booking with the builder
             Booking booking = Booking.builder()
                     .userId(bookingRequest.userId())
                     .roomId(bookingRequest.roomId())
@@ -34,14 +36,26 @@ public class BookingServiceImp implements BookingService {
                     .purpose(bookingRequest.purpose())
                     .build();
 
-            bookingRepository.save(booking);
+            // Save the booking and allow MongoDB to generate the ID
+            booking = bookingRepository.save(booking);  // Save returns the saved entity with an ID
+
             log.info("New booking created: {}", booking);
-            return new BookingResponse(booking.getId(), booking.getUserId(), booking.getRoomId(), booking.getStartTime(), booking.getEndTime(), booking.getPurpose());
+
+            // Return the booking response with the ID from MongoDB
+            return new BookingResponse(
+                    booking.getId(),        // This will now have the generated String ID from MongoDB
+                    booking.getUserId(),
+                    booking.getRoomId(),
+                    booking.getStartTime(),
+                    booking.getEndTime(),
+                    booking.getPurpose()
+            );
         } else {
             log.warn("Room is already booked for the requested time: {}", bookingRequest);
             throw new IllegalStateException("Room is already booked for the requested time.");
         }
     }
+
 
 
     @Override
@@ -53,8 +67,8 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    public void cancelBooking(String bookingId) {
+    public void cancelBooking(String bookingId) {  // Changed parameter type to String
         log.debug("Cancelling booking with id {}", bookingId);
-        bookingRepository.deleteById(bookingId);
+        bookingRepository.deleteById(bookingId);  // Updated to match String ID type
     }
 }

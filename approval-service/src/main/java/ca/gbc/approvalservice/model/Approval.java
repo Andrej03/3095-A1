@@ -18,7 +18,7 @@ public class Approval {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id; // Change this from Long to String
     private Long eventId;
     private Long userId;
     private boolean approved;

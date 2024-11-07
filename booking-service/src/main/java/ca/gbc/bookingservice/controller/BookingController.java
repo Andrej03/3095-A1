@@ -31,7 +31,7 @@ public class BookingController {
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<Void> cancelBooking(@PathVariable("bookingId") String bookingId) {
+    public ResponseEntity<Void> cancelBooking(@PathVariable("bookingId") String bookingId) {  // Changed to String
         bookingService.cancelBooking(bookingId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

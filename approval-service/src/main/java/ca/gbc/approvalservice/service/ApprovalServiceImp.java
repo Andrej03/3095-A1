@@ -23,41 +23,42 @@ public class ApprovalServiceImp implements ApprovalService {
     @Override
     @Transactional
     public ApprovalResponse createApproval(ApprovalRequest approvalRequest) {
-        // Get event from EventService using RestTemplate
+        // Validate if event exists
         Events event = restTemplate.getForObject("http://event-service/events/" + approvalRequest.getEventId(), Events.class);
-
         if (event == null) {
             throw new IllegalArgumentException("Event not found");
         }
 
-        // Check if user is a staff member
-        String userRole = restTemplate.getForObject("http://user-service/users/" + approvalRequest.getUserId() + "/role", String.class);
-        if (!"STAFF".equals(userRole)) {
-            throw new SecurityException("Only staff members can approve events.");
+        // Validate if user is staff
+        String role = restTemplate.getForObject("http://user-service/users/" + approvalRequest.getUserId() + "/role", String.class);
+        if (!"STAFF".equals(role)) {
+            throw new SecurityException("User is not authorized");
         }
 
-        // Create approval
-        Approval approval = new Approval();
-        approval.setEventId(approvalRequest.getEventId());
-        approval.setUserId(approvalRequest.getUserId());
-        approval.setApproved(approvalRequest.isApproved());
-        approval.setApprovalStatus(approvalRequest.getApprovalStatus());
+        // Create the Approval entity
+        Approval approval = new Approval("generated-id", approvalRequest.getEventId(),
+                approvalRequest.getUserId(), approvalRequest.isApproved(),
+                approvalRequest.getApprovalStatus());
 
-        // Save approval and return response
-        approval = approvalRepository.save(approval);
+        // Save to the repository
+        approvalRepository.save(approval);
 
-        return new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(), approval.isApproved(), approval.getApprovalStatus());
+        // Return the response
+        return new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(),
+                approval.isApproved(), approval.getApprovalStatus());
     }
 
+
+
     @Override
-    public ApprovalResponse getApprovalById(Long approvalId) {
+    public ApprovalResponse getApprovalById(String approvalId) {
         return approvalRepository.findById(approvalId)
                 .map(approval -> new ApprovalResponse(approval.getId(), approval.getEventId(), approval.getUserId(), approval.isApproved(), approval.getApprovalStatus()))
                 .orElse(null);
     }
 
     @Override
-    public void deleteApproval(Long approvalId) {
+    public void deleteApproval(String approvalId) {
         approvalRepository.deleteById(approvalId);
     }
 

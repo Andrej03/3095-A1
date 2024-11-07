@@ -1,9 +1,9 @@
 package ca.gbc.eventservice.dto;
 
 public record EventResponse(
-        Long id,
+        String id,  // Changed to String
         String eventName,
-        Long organizerId,
+        String organizerId,  // Changed to String
         String eventType,
         Integer expectedAttendees
 ) { }

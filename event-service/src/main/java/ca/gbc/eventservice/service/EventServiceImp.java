@@ -4,7 +4,7 @@ import ca.gbc.eventservice.dto.EventRequest;
 import ca.gbc.eventservice.dto.EventResponse;
 import ca.gbc.eventservice.model.Events;
 import ca.gbc.eventservice.repository.EventRepository;
-import ca.gbc.userservice.service.UserService; // Adjust the import if needed
+import ca.gbc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class EventServiceImp implements EventService {
     @Override
     public EventResponse createEvent(EventRequest eventRequest) {
         // Validate the organizer's role
-        String userRole = userService.getUserRole(eventRequest.organizerId());  // Directly use Long
+        String userRole = userService.getUserRole(Long.valueOf(eventRequest.organizerId()));
         if (userRole == null) {
             throw new IllegalArgumentException("Invalid organizer ID");
         }
@@ -36,7 +36,7 @@ public class EventServiceImp implements EventService {
         // Create and save the event
         Events event = Events.builder()
                 .eventName(eventRequest.eventName())
-                .organizerId(eventRequest.organizerId())
+                .organizerId(eventRequest.organizerId())  // Corrected to access field directly
                 .eventType(eventRequest.eventType())
                 .expectedAttendees(eventRequest.expectedAttendees())
                 .build();
@@ -57,14 +57,14 @@ public class EventServiceImp implements EventService {
     }
 
     @Override
-    public EventResponse getEventById(Long eventId) {
-        Events event = eventRepository.findById(eventId).orElse(null);
+    public EventResponse getEventById(String eventId) {  // Changed Long to String
+        Events event = eventRepository.findById(eventId).orElse(null);  // Changed Long to String
         return event != null ? new EventResponse(event.getId(), event.getEventName(), event.getOrganizerId(), event.getEventType(), event.getExpectedAttendees()) : null;
     }
 
     @Override
-    public void deleteEvent(Long eventId) {
+    public void deleteEvent(String eventId) {  // Changed Long to String
         log.debug("Deleting event with id {}", eventId);
-        eventRepository.deleteById(eventId);
+        eventRepository.deleteById(eventId);  // Changed Long to String
     }
 }

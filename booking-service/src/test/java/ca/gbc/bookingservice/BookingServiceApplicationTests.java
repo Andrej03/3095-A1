@@ -37,36 +37,38 @@ public class BookingServiceApplicationTests {
     private BookingRequest bookingRequest;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = now.plusDays(1).withSecond(0).withNano(0); // set to whole minute
-        LocalDateTime endTime = startTime.plusHours(2);
-
-        bookingRequest = new BookingRequest(1L, 1L, startTime, endTime, "Test Booking");
+    void setup() {
+        // Mock the repository to return an empty list of bookings for the specific room.
+        when(bookingRepository.findByRoomIdAndStartTimeAndEndTime(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList()); // Room is available.
     }
-
 
     @Test
     void testCreateBookingWhenRoomIsAvailable() {
         // Arrange
-        when(roomClient.isRoomAvailable(anyLong(), anyString(), anyString())).thenReturn(true);
-        when(bookingRepository.save(any(Booking.class))).thenReturn(new Booking(1L, 1L, 1L, bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose()));
+        String expectedId = "generated-id-123"; // Mocked ID as a String (as MongoDB generates it)
+        when(roomClient.isRoomAvailable(anyString(), anyString(), anyString())).thenReturn(true);
+
+        // Mocking bookingRepository.save to return a booking with a generated String ID
+        when(bookingRepository.save(any(Booking.class))).thenReturn(
+                new Booking(expectedId, bookingRequest.userId(), bookingRequest.roomId(),
+                        bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose())
+        );
 
         // Act
         BookingResponse bookingResponse = bookingService.createBooking(bookingRequest);
 
         // Assert
         assertNotNull(bookingResponse);
-        assertEquals(1L, bookingResponse.id());
-        verify(roomClient, times(1)).isRoomAvailable(anyLong(), anyString(), anyString());
+        assertEquals(expectedId, bookingResponse.id());
+        verify(roomClient, times(1)).isRoomAvailable(anyString(), anyString(), anyString());
         verify(bookingRepository, times(1)).save(any(Booking.class));
     }
 
     @Test
     void testCreateBookingWhenRoomIsNotAvailable() {
         // Arrange
-        when(roomClient.isRoomAvailable(anyLong(), anyString(), anyString())).thenReturn(false);
+        when(roomClient.isRoomAvailable(anyString(), anyString(), anyString())).thenReturn(false);
 
         // Act & Assert
         IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> {
@@ -78,7 +80,9 @@ public class BookingServiceApplicationTests {
     @Test
     void testGetAllBookings() {
         // Arrange
-        Booking booking = new Booking(1L, 1L, 1L, bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose());
+        String expectedId = "generated-id-123"; // Mocked ID as a String
+        Booking booking = new Booking(expectedId, bookingRequest.userId(), bookingRequest.roomId(),
+                bookingRequest.startTime(), bookingRequest.endTime(), bookingRequest.purpose());
         when(bookingRepository.findAll()).thenReturn(Collections.singletonList(booking));
 
         // Act
@@ -87,18 +91,15 @@ public class BookingServiceApplicationTests {
         // Assert
         assertNotNull(bookings);
         assertEquals(1, bookings.size());
-        assertEquals(booking.getId(), bookings.getFirst().id());
+        assertEquals(expectedId, bookings.getFirst().id());  // Expect String ID
     }
 
     @Test
     void testCancelBooking() {
-        // Arrange
-        doNothing().when(bookingRepository).deleteById(anyString());
-
         // Act
-        bookingService.cancelBooking("1");
+        bookingService.cancelBooking("generated-id-123");  // Pass a String ID for MongoDB
 
         // Assert
-        verify(bookingRepository, times(1)).deleteById("1");
+        verify(bookingRepository, times(1)).deleteById("generated-id-123");  // Expect String ID
     }
 }

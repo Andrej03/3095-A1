@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApprovalResponse {
-    private Long id;
+    private String id; // Change this from Long to String
     private Long eventId;
     private Long userId;
     private boolean approved;

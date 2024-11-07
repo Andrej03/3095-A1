@@ -31,14 +31,14 @@ public class ApprovalController {
     }
 
     @GetMapping("/{approvalId}")
-    public ResponseEntity<ApprovalResponse> getApprovalById(@PathVariable("approvalId") Long approvalId) {
+    public ResponseEntity<ApprovalResponse> getApprovalById(@PathVariable("approvalId") String approvalId) {
         ApprovalResponse approvalResponse = approvalService.getApprovalById(approvalId);
         return approvalResponse != null ? new ResponseEntity<>(approvalResponse, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{approvalId}")
-    public ResponseEntity<Void> deleteApproval(@PathVariable("approvalId") Long approvalId) {
+    public ResponseEntity<Void> deleteApproval(@PathVariable("approvalId") String approvalId) {
         approvalService.deleteApproval(approvalId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
