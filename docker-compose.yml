@@ -53,6 +53,7 @@ services:
     container_name: booking-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      MONGO_URI: mongodb://mongodb:27017/booking_db
     depends_on:
       - mongodb
     networks:
@@ -68,6 +69,7 @@ services:
     container_name: event-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      MONGO_URI: mongodb://mongodb:27017/event_db
     depends_on:
       - mongodb
     networks:
@@ -83,6 +85,7 @@ services:
     container_name: approval-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      MONGO_URI: mongodb://mongodb:27017/approval_db
     depends_on:
       - mongodb
     networks:
@@ -97,7 +100,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
-      - ./data/mongo/products:/data/db
+      - ./data/mongo:/data/db
       - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     networks:
       - spring
