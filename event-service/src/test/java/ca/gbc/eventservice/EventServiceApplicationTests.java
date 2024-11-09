@@ -25,7 +25,6 @@ public class EventServiceApplicationTests {
 
 	@BeforeEach
 	public void setup() {
-		// Set the base URI for all requests
 		RestAssured.baseURI = "http://localhost";
 		RestAssured.port = port;
 	}
@@ -48,18 +47,16 @@ public class EventServiceApplicationTests {
 				.post("/api/events")
 				.then()
 				.log().all()
-				.statusCode(201)  // Assert that the status code is 201 (Created)
+				.statusCode(201)  // CREATED
 				.extract()
 				.body().asString();
 
-		// Assert the response message
-		assertThat(responseBodyString, Matchers.containsString("eventName"));
-		assertThat(responseBodyString, Matchers.containsString("Tech Conference 2024"));
+		assertThat(responseBodyString, Matchers.is("eventName"));
+		assertThat(responseBodyString, Matchers.is("Tech Conference 2024"));
 	}
 
 	@Test
 	public void testCreateEventWithTooManyAttendeesForStudent() {
-		// Create a sample event request for a student with too many attendees
 		String eventRequestJson = """
             {
                 "eventName": "Student Conference",
@@ -69,7 +66,6 @@ public class EventServiceApplicationTests {
             }
             """;
 
-		// Send a POST request and check if it throws the appropriate error
 		var responseBodyString = RestAssured.given()
 				.contentType("application/json")
 				.body(eventRequestJson)
@@ -77,58 +73,55 @@ public class EventServiceApplicationTests {
 				.post("/api/events")
 				.then()
 				.log().all()
-				.statusCode(400)  // Should return a bad request
+				.statusCode(400)  // BAD REQUEST
 				.extract()
 				.body().asString();
 
 		// Assert the response message
-		assertThat(responseBodyString, Matchers.containsString("Students cannot organize events with more than 10 attendees."));
+		assertThat(responseBodyString, Matchers.is("Students cannot organize events with more than 10 attendees."));
 	}
 
 	@Test
 	public void testGetAllEvents() {
-		// Send a GET request to retrieve all events
 		var responseBodyString = RestAssured.given()
 				.when()
 				.get("/api/events")
 				.then()
 				.log().all()
-				.statusCode(200)  // Ensure the request was successful
+				.statusCode(200)  // OK
 				.extract()
 				.body().asString();
 
-		// Assert that the response body contains at least 2 events in the list
-		assertThat(responseBodyString, Matchers.containsString("\"id\":"));
+		assertThat(responseBodyString, Matchers.is("\"id\":"));
 	}
 
 	@Test
 	public void testGetEventById() {
-		String eventId = "event123";  // Replace with an actual event ID for testing
+		String eventId = "event123";
 
 		var responseBodyString = RestAssured.given()
 				.when()
 				.get("/api/events/" + eventId)
 				.then()
 				.log().all()
-				.statusCode(200)  // Assert that the status code is 200 (OK)
+				.statusCode(200)  // OK
 				.extract()
 				.body().asString();
 
-		// Assert the response contains the expected event details
-		assertThat(responseBodyString, Matchers.containsString("eventName"));
-		assertThat(responseBodyString, Matchers.containsString("Tech Conference 2024"));
+		assertThat(responseBodyString, Matchers.is("eventName"));
+		assertThat(responseBodyString, Matchers.is("Tech Conference 2024"));
 	}
 
 	@Test
 	public void testDeleteEvent() {
-		String eventId = "event123";  // Replace with an actual event ID for testing
+		String eventId = "event123";
 
 		RestAssured.given()
 				.when()
 				.delete("/api/events/" + eventId)
 				.then()
 				.log().all()
-				.statusCode(204);  // Assert that the status code is 204 (No Content)
+				.statusCode(204);
 	}
 
 	@Test
@@ -149,12 +142,11 @@ public class EventServiceApplicationTests {
 				.post("/api/events")
 				.then()
 				.log().all()
-				.statusCode(403)  // Forbidden for non-STAFF users
+				.statusCode(403)
 				.extract()
 				.body().asString();
 
-		// Assert the response contains a message indicating lack of permission
-		assertThat(responseBodyString, Matchers.containsString("Forbidden for non-STAFF users"));
+		assertThat(responseBodyString, Matchers.is("Forbidden for non-STAFF users"));
 	}
 
 

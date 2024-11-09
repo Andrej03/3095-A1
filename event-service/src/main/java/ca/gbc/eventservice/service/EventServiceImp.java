@@ -24,26 +24,23 @@ public class EventServiceImp implements EventService {
 
     @Override
     public EventResponse createEvent(EventRequest eventRequest) {
-        // Directly call UserService to get the user's role
         String userRole = userClient.getUserRole(Long.valueOf(eventRequest.organizerId()));
         if (userRole == null) {
             throw new IllegalArgumentException("Invalid organizer ID");
         }
 
-        // Role-based restrictions
         if ("STUDENT".equals(userRole) && eventRequest.expectedAttendees() > 10) {
             throw new IllegalArgumentException("Students cannot organize events with more than 10 attendees.");
         }
 
-        // Create and save the event
         Events event = Events.builder()
                 .eventName(eventRequest.eventName())
-                .organizerId(eventRequest.organizerId())  // Corrected to access field directly
+                .organizerId(eventRequest.organizerId())
                 .eventType(eventRequest.eventType())
                 .expectedAttendees(eventRequest.expectedAttendees())
                 .build();
 
-        event = eventRepository.save(event);  // Save event and get the ID
+        event = eventRepository.save(event);
 
         log.info("New event created: {}", event);
         return new EventResponse(event.getId(), event.getEventName(), event.getOrganizerId(), event.getEventType(), event.getExpectedAttendees());
@@ -58,14 +55,14 @@ public class EventServiceImp implements EventService {
     }
 
     @Override
-    public EventResponse getEventById(String eventId) {  // Changed Long to String
-        Events event = eventRepository.findById(eventId).orElse(null);  // Changed Long to String
+    public EventResponse getEventById(String eventId) {
+        Events event = eventRepository.findById(eventId).orElse(null);
         return event != null ? new EventResponse(event.getId(), event.getEventName(), event.getOrganizerId(), event.getEventType(), event.getExpectedAttendees()) : null;
     }
 
     @Override
-    public void deleteEvent(String eventId) {  // Changed Long to String
+    public void deleteEvent(String eventId) {
         log.debug("Deleting event with id {}", eventId);
-        eventRepository.deleteById(eventId);  // Changed Long to String
+        eventRepository.deleteById(eventId);
     }
 }

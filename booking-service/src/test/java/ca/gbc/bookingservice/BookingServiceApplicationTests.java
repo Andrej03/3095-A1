@@ -28,7 +28,6 @@ public class BookingServiceApplicationTests {
 
     @BeforeEach
     public void setup() {
-        // Set the base URI for all requests
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
@@ -51,7 +50,7 @@ public class BookingServiceApplicationTests {
                 .post("/bookings")
                 .then()
                 .log().all()
-                .statusCode(201)  // Assert that the status code is 201 (Created)
+                .statusCode(201)  // status CREATED
                 .extract()
                 .body().asString();
 
@@ -77,7 +76,7 @@ public class BookingServiceApplicationTests {
                 .post("/bookings")
                 .then()
                 .log().all()
-                .statusCode(409)  // Conflict status code for resource conflict
+                .statusCode(409)
                 .extract()
                 .body().asString();
 
@@ -103,7 +102,7 @@ public class BookingServiceApplicationTests {
                 .post("/bookings")
                 .then()
                 .log().all()
-                .statusCode(400)  // Bad request for invalid inputs
+                .statusCode(400) // Bad input/ invalid input
                 .extract()
                 .body().asString();
 
@@ -115,14 +114,13 @@ public class BookingServiceApplicationTests {
     public void testGetBookingById() {
         var responseBodyString = RestAssured.given()
                 .when()
-                .get("/bookings/1")  // Adjust the endpoint according to your API path
+                .get("/bookings/1")
                 .then()
                 .log().all()
-                .statusCode(200)  // Assert that the status code is 200 (OK)
+                .statusCode(200) // status OK
                 .extract()
                 .body().asString();
 
-        // Assert the response body or any specific field
         assertThat(responseBodyString, Matchers.is("{\"roomId\": 101, \"userId\": 1, \"startTime\": \"2024-11-10T09:00:00\"}"));
     }
 

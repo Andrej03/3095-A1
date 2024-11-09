@@ -52,8 +52,8 @@ public class UserController {
     }
 
     @GetMapping("/api/users/{userId}/role")
-    public ResponseEntity<String> getUserRole(@PathVariable Long userId) {  // Changed to Long
-        String role = userService.getUserRole(userId);  // Now expects a Long parameter
+    public ResponseEntity<String> getUserRole(@PathVariable Long userId) {
+        String role = userService.getUserRole(userId);
         return role != null ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
     }
 }

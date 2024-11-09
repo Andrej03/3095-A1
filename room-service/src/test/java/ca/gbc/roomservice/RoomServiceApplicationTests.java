@@ -49,7 +49,7 @@ public class RoomServiceApplicationTests {
 				.post("/api/rooms")
 				.then()
 				.log().all()
-				.statusCode(201)  // Assert that the status code is 201 (Created)
+				.statusCode(201)  // CREATED
 				.extract()
 				.body()
 				.asString();
@@ -60,15 +60,19 @@ public class RoomServiceApplicationTests {
 
 	@Test
 	void testGetAllRooms() {
-		RestAssured.given()
+		var responseBodyString = RestAssured.given()
 				.when()
 				.get("/api/rooms")
 				.then()
 				.log().all()
-				.statusCode(200)  // Ensure the request was successful
-				.body("$", Matchers.hasSize(Matchers.greaterThan(0))); // Ensure there are rooms in the list
-	}
+				.statusCode(200)  // OK
+				.extract()
+				.body()
+				.asString();
 
+		assertThat(responseBodyString, Matchers.containsString("\"id\""));
+		assertThat(responseBodyString, Matchers.containsString("roomName"));
+	}
 
 	@Test
 	void testUpdateRoom() {
@@ -89,12 +93,13 @@ public class RoomServiceApplicationTests {
 				.put("/api/rooms/1")
 				.then()
 				.log().all()
-				.statusCode(204); // Should return No Content (204)
+				.statusCode(204) // NO CONTENT
+				.extract()
+				.body()
+				.asString();
 
-		String responseBody = response.extract().body().asString();
-		assertThat(responseBody, Matchers.equalTo(""));
+		assertThat(response, Matchers.is(""));
 	}
-
 
 	@Test
 	void testDeleteRoom() {
@@ -105,9 +110,8 @@ public class RoomServiceApplicationTests {
 				.delete("/api/rooms/{roomId}", roomId)
 				.then()
 				.log().all()
-				.statusCode(204); // Should return No Content (204)
+				.statusCode(204); // NO CONTENT
 	}
-
 
 	@Test
 	void testCheckRoomAvailability() {
@@ -115,15 +119,18 @@ public class RoomServiceApplicationTests {
 		String startTime = "2024-11-06T10:00:00";
 		String endTime = "2024-11-06T12:00:00";
 
-		RestAssured.given()
+		var responseBodyString = RestAssured.given()
 				.queryParam("startTime", startTime)
 				.queryParam("endTime", endTime)
 				.when()
 				.get("/api/rooms/{roomId}/availability", roomId)
 				.then()
 				.log().all()
-				.statusCode(200)  // Ensure the request was successful
-				.body(Matchers.is(true)); // Assert room is available
-	}
+				.statusCode(200)  // OK
+				.extract()
+				.body()
+				.asString();
 
+		assertThat(responseBodyString, Matchers.is("true"));
+	}
 }

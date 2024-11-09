@@ -29,7 +29,7 @@ public class RoomsServiceImp implements RoomsService {
         room.setRoomName(roomRequest.roomName());
         room.setCapacity(roomRequest.capacity());
         room.setFeatures(roomRequest.features());
-        room.setAvailable(true);  // assuming a new room is available by default
+        room.setAvailable(true);
 
         roomsRepository.save(room);
 
@@ -71,10 +71,6 @@ public class RoomsServiceImp implements RoomsService {
 
     @Override
     public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime) {
-        // Assuming RoomAvailability is being stored in the Room model or some other table in the database
-        // Check if the room is available during the provided time window
-
-        // Example: You may have a "Bookings" table in the database that tracks which room is booked during which time
         List<Rooms> conflictingBookings = roomsRepository.findConflictingBookings(roomId, startTime, endTime);
         return conflictingBookings.isEmpty();
     }

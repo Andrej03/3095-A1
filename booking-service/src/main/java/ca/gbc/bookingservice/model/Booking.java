@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Booking {
     @Id
-    private String id;  // Changed to String for MongoDB compatibility
+    private String id;
     private Long userId;
     private String roomId;
     private LocalDateTime startTime;

@@ -27,7 +27,6 @@ public class BookingServiceImp implements BookingService {
 
         // Check if the room is available
         if (roomClient.isRoomAvailable(bookingRequest.roomId(), startTimeStr, endTimeStr)) {
-            // Create the booking with the builder
             Booking booking = Booking.builder()
                     .userId(bookingRequest.userId())
                     .roomId(bookingRequest.roomId())
@@ -36,14 +35,12 @@ public class BookingServiceImp implements BookingService {
                     .purpose(bookingRequest.purpose())
                     .build();
 
-            // Save the booking and allow MongoDB to generate the ID
             booking = bookingRepository.save(booking);
 
             log.info("New booking created: {}", booking);
 
-            // Return the booking response with the ID from MongoDB
             return new BookingResponse(
-                    booking.getId(),        // MongoDB-generated String ID
+                    booking.getId(),
                     booking.getUserId(),
                     booking.getRoomId(),
                     booking.getStartTime(),

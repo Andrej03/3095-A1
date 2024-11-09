@@ -10,6 +10,6 @@ import java.util.List;
 public interface EventService {
     EventResponse createEvent(EventRequest eventRequest);
     List<EventResponse> getAllEvents();
-    EventResponse getEventById(String eventId);  // Changed Long to String
-    void deleteEvent(String eventId);  // Changed Long to String
+    EventResponse getEventById(String eventId);
+    void deleteEvent(String eventId);
 }

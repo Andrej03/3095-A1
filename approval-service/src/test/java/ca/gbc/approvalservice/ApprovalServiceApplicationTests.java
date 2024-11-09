@@ -55,10 +55,8 @@ public class ApprovalServiceApplicationTests {
                 .extract()
                 .body().asString();
 
-        // Verifying the response body
         assertThat(responseBodyString, containsString("Approved"));
 
-        // Verifying that the approval was created successfully
         RestAssured.given()
                 .contentType("application/json")
                 .when()
@@ -71,7 +69,6 @@ public class ApprovalServiceApplicationTests {
 
     @Test
     void testGetAllApprovals() {
-        // Add two more approvals for testing
         String createApprovalJson1 = """
                 {
                     "eventId": 2,
@@ -104,20 +101,18 @@ public class ApprovalServiceApplicationTests {
                 .when()
                 .post("/api/approvals")
                 .then()
-                .statusCode(201);
+                .statusCode(201); // CREATED
 
-        // Retrieve all approvals
         var responseBody = RestAssured.given()
                 .contentType("application/json")
                 .when()
                 .get("/api/approvals")
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(200) // OK
                 .extract()
                 .body().asString();
 
-        // Verifying the response contains approval statuses
         assertThat(responseBody, containsString("Approved"));
         assertThat(responseBody, containsString("Rejected"));
     }
@@ -133,7 +128,7 @@ public class ApprovalServiceApplicationTests {
                 .get("/api/approvals/" + approvalId)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(200) // OK
                 .extract()
                 .body().asString();
 
@@ -146,22 +141,20 @@ public class ApprovalServiceApplicationTests {
                 .get("/api/approvals/" + approvalId)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(200) // OK
                 .body(containsString("Approved"));
     }
 
     @Test
     void testDeleteApproval() {
-        // Assuming approvalId 1 exists for deletion
         long approvalId = 1L;
 
-        // Delete the approval
         RestAssured.given()
                 .when()
                 .delete("/api/approvals/" + approvalId)
                 .then()
                 .log().all()
-                .statusCode(204);  // No content status on successful deletion
+                .statusCode(204); // NO CONTENT to delete
 
         // Verify it was deleted by checking its absence
         RestAssured.given()
@@ -170,14 +163,13 @@ public class ApprovalServiceApplicationTests {
                 .get("/api/approvals/" + approvalId)
                 .then()
                 .log().all()
-                .statusCode(404);  // Not found after deletion
+                .statusCode(404);
     }
 
     @Test
     void testFailWhenNonStaffApprovesEvent() {
-        // Assuming user with ID 2 is a STUDENT and cannot approve events
         long userId = 2L;
-        long eventId = 1L; // Sample eventId
+        long eventId = 1L;
 
         var responseBodyString = RestAssured.given()
                 .contentType("application/json")
@@ -185,11 +177,10 @@ public class ApprovalServiceApplicationTests {
                 .post("/api/approvals/" + eventId + "/approve?userId=" + userId)
                 .then()
                 .log().all()
-                .statusCode(403)  // Forbidden for non-STAFF users
+                .statusCode(403)
                 .extract()
                 .body().asString();
 
-        // Verifying that the response body matches the expected error message
         assertThat(responseBodyString, containsString("Forbidden"));
     }
 
