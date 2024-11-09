@@ -9,11 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EventServiceImp implements EventService {
 
     private static final Logger log = LoggerFactory.getLogger(EventServiceImp.class);
@@ -22,7 +24,7 @@ public class EventServiceImp implements EventService {
 
     @Override
     public EventResponse createEvent(EventRequest eventRequest) {
-        // Validate the organizer's role
+        // Directly call UserService to get the user's role
         String userRole = userService.getUserRole(Long.valueOf(eventRequest.organizerId()));
         if (userRole == null) {
             throw new IllegalArgumentException("Invalid organizer ID");
@@ -46,7 +48,6 @@ public class EventServiceImp implements EventService {
         log.info("New event created: {}", event);
         return new EventResponse(event.getId(), event.getEventName(), event.getOrganizerId(), event.getEventType(), event.getExpectedAttendees());
     }
-
 
     @Override
     public List<EventResponse> getAllEvents() {
