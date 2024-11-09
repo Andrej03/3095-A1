@@ -20,7 +20,6 @@ public class ApprovalServiceImp implements ApprovalService {
 
     @Override
     public ApprovalResponse createApproval(ApprovalRequest approvalRequest) {
-        // Business logic to create an approval
         Approval approval = new Approval();
         approval.setEventId(approvalRequest.getEventId());
         approval.setUserId(approvalRequest.getUserId());

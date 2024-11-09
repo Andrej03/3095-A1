@@ -1,10 +1,10 @@
 package ca.gbc.eventservice.service;
 
+import ca.gbc.eventservice.client.UserClient;
 import ca.gbc.eventservice.dto.EventRequest;
 import ca.gbc.eventservice.dto.EventResponse;
 import ca.gbc.eventservice.model.Events;
 import ca.gbc.eventservice.repository.EventRepository;
-import ca.gbc.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +20,12 @@ public class EventServiceImp implements EventService {
 
     private static final Logger log = LoggerFactory.getLogger(EventServiceImp.class);
     private final EventRepository eventRepository;
-    private final UserService userService;
+    private final UserClient userClient;
 
     @Override
     public EventResponse createEvent(EventRequest eventRequest) {
         // Directly call UserService to get the user's role
-        String userRole = userService.getUserRole(Long.valueOf(eventRequest.organizerId()));
+        String userRole = userClient.getUserRole(Long.valueOf(eventRequest.organizerId()));
         if (userRole == null) {
             throw new IllegalArgumentException("Invalid organizer ID");
         }
