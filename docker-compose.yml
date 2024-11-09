@@ -11,6 +11,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     volumes:
+      - ./data/room-service:/var/lib/postgresql/data
       - ./init/room-service/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - spring
@@ -25,6 +26,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     volumes:
+      - ./data/user-service:/var/lib/postgresql/data
       - ./init/user-service/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - spring
@@ -95,6 +97,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
+      - ./data/mongo/products:/data/db
       - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     networks:
       - spring
