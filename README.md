@@ -1,1 +1,9 @@
-"# 3095-A1"  git init git add README.md git commit -m "first commit" git branch -M main git remote add origin https://github.com/Andrej03/3095-A1.git git push -u origin main
+GROUP 48 - ASSIGNMENT 1 - COMP 3095
+
+------------------------------------
+
+TEAM: 
+ANDREJ BACHVAROVSKI - 101417557
+MENESS PRETHIPAN - 101249816 
+
+----------------------------------
