@@ -1,0 +1,59 @@
+## -----------------------------------------------------
+## 1. docker-compose -p microservices-comp3095-ecommerce -f docker-compose.yml up -d
+##    -- This command will start the container in detached mode without rebuilding the image if they already exist
+##
+## 2. docker-compose -p microservices-comp3095-ecommerce -f docker-compose.yml up -d --build
+##    -- This command forces the rebuild of images, even if the images already exist, before starting the container
+## -----------------------------------------------------
+version: '4.0'
+services:
+  # zookeeper to co-ordinate and merge kafka broker
+  zookeeper:
+    container_name: zookeeper
+    hostname: zookeeper
+    image: confluentinc/cp-zookeeper
+    ports:
+      - "2182:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - spring
+
+  broker:
+    container_name: kafka
+    hostname: kafka
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      # External connection (outside docker) use 9092 and host.internal.docker
+      - "9091:9092"
+      # Internal connection (inside docker) use 29092 and the container host(broker)
+      - "29091:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2182'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT, PLAINTEXT_HOST_PLAINTEXT
+      KAFKA_ADVERTISED_LISTENER: PLAINTEXT://broker:29092, PLAINTEXT_HOST://host.internal.docker:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - spring
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8088:8086"
+    environment:
+      KAFKA_CLUSTER_NAME: local
+      KAFKA_CLUSTER_BOOTSTRAPSERVERS: broker:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    depends_on:
+      - broker
+    networks:
+      - spring
+
+networks:
+  spring:
+    driver: bridge
