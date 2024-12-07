@@ -13,13 +13,13 @@ public interface UserClient {
 
     Logger log = LoggerFactory.getLogger(UserClient.class);
 
-    @GetExchange( value = "/api/user/{userId}/role")
+    @GetExchange(value = "/api/user/{userId}/role")
     @CircuitBreaker(name = "users", fallbackMethod = "fallbackMethod")
     @Retry(name = "users")
     boolean isUserApproved(@PathVariable("userId") Long userId);
 
     default boolean fallbackMethod(Long userId, Throwable throwable) {
-        log.info("User with id {} has not been approved, {}",userId ,throwable.getMessage());
+        log.info("User with id {} could not be verified. Reason: {}", userId, throwable.getMessage());
         return false;
     }
 }

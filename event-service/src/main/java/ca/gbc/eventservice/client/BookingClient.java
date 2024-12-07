@@ -18,8 +18,9 @@ public interface BookingClient {
     @Retry(name = "booking")
     String getEventBooked(@PathVariable String eventId, @PathVariable String eventName);
 
-    default boolean fallbackMethod(String eventId, String eventName, Throwable throwable) {
-        log.info("Event {} by id number {}, the information can not be given {}", eventName, eventId, throwable.getMessage());
-        return false;
+    default String fallbackMethod(String eventId, String eventName, Throwable throwable) {
+        log.info("Unable to get booking info for event {} with ID {}. Reason: {}",
+                eventName, eventId, throwable.getMessage());
+        return "Fallback booking info: Unavailable";
     }
 }
