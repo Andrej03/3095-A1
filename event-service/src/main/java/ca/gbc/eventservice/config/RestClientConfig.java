@@ -1,6 +1,6 @@
 package ca.gbc.eventservice.config;
 
-import ca.gbc.eventservice.client.UserClient;
+import ca.gbc.eventservice.client.BookingClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
@@ -16,19 +16,19 @@ import java.time.Duration;
 @Configuration
 public class RestClientConfig {
 
-    @Value("${user.service.url}")
-    private String userServiceUrl;
+    @Value("${booking.service.url}")
+    private String bookingServiceUrl;
 
     @Bean
-    public UserClient userClient() {
+    public BookingClient bookingClient() {
         RestClient restClient = RestClient.builder()
-                .baseUrl(userServiceUrl)
+                .baseUrl(bookingServiceUrl)
                 .requestFactory(getClientFactory())
                 .build();
 
         var restClientAdapter = RestClientAdapter.create(restClient);
         var httpServiceProxyFactory = HttpServiceProxyFactory.builderFor(restClientAdapter).build();
-        return httpServiceProxyFactory.createClient(UserClient.class);
+        return httpServiceProxyFactory.createClient(BookingClient.class);
     }
 
     private ClientHttpRequestFactory getClientFactory() {

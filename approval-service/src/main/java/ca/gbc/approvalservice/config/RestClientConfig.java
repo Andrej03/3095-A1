@@ -1,6 +1,6 @@
 package ca.gbc.approvalservice.config;
 
-import ca.gbc.approvalservice.client.BookingClient;
+import ca.gbc.approvalservice.client.UserClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
@@ -16,11 +16,11 @@ import java.time.Duration;
 @Configuration
 public class RestClientConfig {
 
-    @Value("${booking.service.url}")
+    @Value("${user.service.url}")
     private String bookingServiceUrl;
 
     @Bean
-    public BookingClient bookingClient() {
+    public UserClient UserClient() {
 
         RestClient restClient = RestClient.builder()
                 .baseUrl(bookingServiceUrl)
@@ -29,7 +29,7 @@ public class RestClientConfig {
 
         var restClientAdapter = RestClientAdapter.create(restClient);
         var httpServiceProxyFactory = HttpServiceProxyFactory.builderFor(restClientAdapter).build();
-        return httpServiceProxyFactory.createClient(BookingClient.class);
+        return httpServiceProxyFactory.createClient(UserClient.class);
     }
 
     private ClientHttpRequestFactory getClientFactory() {
