@@ -4,7 +4,7 @@ services:
     container_name: keycloak
     hostname: keycloak
     image: quay.io/keycloak/keycloak:24.0.1
-    command: ["start-dev", " --import-realm"]
+    command: ["start-dev", "--import-realm"]
     environment:
       DB_VENDOR: postgres
       DB_ADDR: postgres-keycloak
